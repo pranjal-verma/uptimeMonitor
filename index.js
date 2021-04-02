@@ -2,23 +2,15 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 // const url = require('url') Deprecated
-
 const lib = require("./lib/data");
 const handlers = require("./lib/handlers");
 
-// lib.create('gold','temp', {me:'lorem ipsum'}, console.log)
-
-lib.read("nvm", "temp1", { foo: "bar" });
-
-// lib.read('gold', 'temp')
-// console.log(process.env.NODE_ENV)
 const { StringDecoder } = require("string_decoder");
 const decoder = new StringDecoder("utf-8");
 
-// console.log(decoder.write(rsaOptions.key))
-
 const config = require("./config.js");
-
+const helpers = require("./lib/helpers");
+console.log(process.env.NODE_ENV);
 const httpPORT = config.httpPORT || 8080;
 const httpsPORT = config.httpsPORT || 8081;
 
@@ -70,7 +62,7 @@ const unifiedServer = async (req, res) => {
       ? handlers[trimmedPath[1]]
       : handlers.notFound; // THIS IS A BAD WAY ON DOING IT
     let data = {
-      buffer,
+      payload: helpers.parseJSON,
       path,
       method,
       port: receivedUrl.port,
@@ -80,8 +72,10 @@ const unifiedServer = async (req, res) => {
     try {
       const response = await requiredHandler(data);
       console.log(response);
+      res.send(response);
     } catch (error) {
       console.log(error);
+      res.end(error);
     }
     // requiredHandler(data, (statusCode, payload = {}) => {
     //   statusCode = (typeof(statusCode) == 'number'? statusCode : 500 )
