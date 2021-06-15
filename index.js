@@ -1,6 +1,8 @@
 const http = require("http");
 const https = require("https");
 const fs = require("fs");
+const path = require("path");
+const util = require("util");
 // const url = require('url') Deprecated
 const lib = require("./lib/data");
 const handlers = require("./lib/handlers/handlers.js");
@@ -15,6 +17,11 @@ const httpPORT = config.httpPORT || 8080;
 const httpsPORT = config.httpsPORT || 8081;
 
 const BASE_URL = `http://localhost:${httpPORT}`;
+process.on("uncaughtException", (error, origin) => {
+  let error_path = path.join(__dirname, ".logs", Date.now() + ".log");
+  // return {};
+  fs.writeFileSync(error_path, util.format(error));
+});
 const rsaOptions = {
   cert: decoder.write(fs.readFileSync("./https/6410811_localhost3000.cert")),
   key: decoder.write(fs.readFileSync("./https/6410811_localhost3000.key")),
@@ -79,9 +86,10 @@ const unifiedServer = async (req, res) => {
     try {
       const response = await requiredHandler(data);
       console.log(response);
+      res.setHeader("content-type", "application/json");
       res.end(JSON.stringify(response));
     } catch (error) {
-      console.log("+++___ error res", error);
+      console.log("Error unified server", error);
       res.end(String(error));
     }
     // requiredHandler(data, (statusCode, payload = {}) => {

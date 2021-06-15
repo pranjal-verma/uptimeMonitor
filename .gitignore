@@ -1,4 +1,5 @@
 *.cert
 *.key
 *.data
+.logs/
 start-sever.sh 
