@@ -3,7 +3,7 @@ const https = require("https");
 const fs = require("fs");
 // const url = require('url') Deprecated
 const lib = require("./lib/data");
-const handlers = require("./lib/handlers");
+const handlers = require("./lib/handlers/handlers.js");
 
 const { StringDecoder } = require("string_decoder");
 const decoder = new StringDecoder("utf-8");
@@ -45,16 +45,21 @@ const router = {
 
 const unifiedServer = async (req, res) => {
   const receivedUrl = new URL(req.url, BASE_URL);
+  let queryParams = {};
+  receivedUrl.searchParams.forEach((value, key) => {
+    queryParams[key] = value;
+  });
+  // console.log("queryParams are &&********", queryParams);
   let pathCount = 1;
   let buffer = "";
-  console.log(receivedUrl);
+  // console.log(receivedUrl);
   const method = req.method;
   const path = receivedUrl.pathname;
   const trimmedPath = path.split("/");
   req.on("data", (data) => {
     buffer += decoder.write(data);
   });
-  console.log("processing normally");
+  // console.log("processing normally");
   req.on("end", async () => {
     // console.log(buffer);
     // Choose the handler this request should go to, if not found return 404 handler
@@ -62,20 +67,22 @@ const unifiedServer = async (req, res) => {
       ? handlers[trimmedPath[1]]
       : handlers.notFound; // THIS IS A BAD WAY ON DOING IT
     let data = {
-      payload: helpers.parseJSON,
+      receivedUrl,
+      queryParams,
+      payload: helpers.parseJSON(buffer),
       path,
       method,
       port: receivedUrl.port,
       hostname: receivedUrl.hostname,
     };
-    console.log(data);
+    // console.log(data);
     try {
       const response = await requiredHandler(data);
       console.log(response);
-      res.send(response);
+      res.end(JSON.stringify(response));
     } catch (error) {
-      console.log(error);
-      res.end(error);
+      console.log("+++___ error res", error);
+      res.end(String(error));
     }
     // requiredHandler(data, (statusCode, payload = {}) => {
     //   statusCode = (typeof(statusCode) == 'number'? statusCode : 500 )
