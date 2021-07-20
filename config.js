@@ -14,11 +14,13 @@ environments.dev = {
   httpsPORT: 3001,
   envName: "dev",
   hashingSecret: "This is a secret",
+  maxChecks: 5,
 };
 environments.production = {
   PORT: 3000,
   envName: "production",
   hashingSecret: "This is a secret",
+  maxChecks: 5,
 };
 
 const currentEnv =

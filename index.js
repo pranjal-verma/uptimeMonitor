@@ -52,11 +52,14 @@ const router = {
 
 const unifiedServer = async (req, res) => {
   const receivedUrl = new URL(req.url, BASE_URL);
+  const { headers = {} } = req;
+  const { searchParams = [] } = receivedUrl;
   let queryParams = {};
-  receivedUrl.searchParams.forEach((value, key) => {
+
+  searchParams.forEach((value, key) => {
     queryParams[key] = value;
   });
-  // console.log("queryParams are &&********", queryParams);
+
   let pathCount = 1;
   let buffer = "";
   // console.log(receivedUrl);
@@ -68,7 +71,6 @@ const unifiedServer = async (req, res) => {
   });
   // console.log("processing normally");
   req.on("end", async () => {
-    // console.log(buffer);
     // Choose the handler this request should go to, if not found return 404 handler
     const requiredHandler = handlers.hasOwnProperty(trimmedPath[1])
       ? handlers[trimmedPath[1]]
@@ -81,11 +83,12 @@ const unifiedServer = async (req, res) => {
       method,
       port: receivedUrl.port,
       hostname: receivedUrl.hostname,
+      headers,
     };
     // console.log(data);
     try {
       const response = await requiredHandler(data);
-      console.log(response);
+      // console.log(response);
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify(response));
     } catch (error) {
